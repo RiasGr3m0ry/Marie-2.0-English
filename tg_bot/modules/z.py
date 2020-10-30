@@ -11,7 +11,12 @@ import logging
 # Tested with Python 3.4.3
 
 # global contstants!
+from telegram import ParseMode, Update, Bot, Chat
+from telegram.ext import CommandHandler, MessageHandler, BaseFilter
+
 # token from config.py
+
+
 from tg_bot import TOKEN
 strings = ['Aaarghhh!!!', 'Braaiiinnzzz..', 'Grmbblrr..', 'GRRRRRR...!!', 'Bluuughhrr..']
 url = 'https://api.telegram.org/bot' + TOKEN + '/'
