@@ -24,11 +24,12 @@ from tg_bot.modules.helper_funcs.misc import paginate_modules
 
 
 PM_START_TEXT = """
-*Waga na wa Megumin!* Ākuwizādo wo nariwai toshi, saikyou no kougeki no mahou "bakuretsu mahou" wo ayatsuru mono!
+*Waga na wa Megumin!* 
+Ākuwizādo wo nariwai toshi, saikyou no kougeki no mahou "bakuretsu mahou" wo ayatsuru mono!
 Use /help to see my powers!
 """
 
-BOT_IMAGE = "https://telegra.ph/file/93612a540608640355f20.mp4"
+BOT_IMAGE = "https://telegra.ph/file/3abaa1d025b9147a460fe.gif"
 
 HELP_STRINGS = """
 Blackness shrouded in light. Frenzied blaze clad in night. In the name of the crimson demons, let the collapse of thine origin manifest. Summon before me the root of thy power hidden within the lands of the kingdom of demise!"
