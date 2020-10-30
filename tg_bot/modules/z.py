@@ -12,9 +12,9 @@ import logging
 
 # global contstants!
 # token from config.py
-from config import token
+from tg_bot import TOKEN
 strings = ['Aaarghhh!!!', 'Braaiiinnzzz..', 'Grmbblrr..', 'GRRRRRR...!!', 'Bluuughhrr..']
-url = 'https://api.telegram.org/bot' + token + '/'
+url = 'https://api.telegram.org/bot' + TOKEN + '/'
 filename = 'offset.txt'  # updateID offset to prevent multiple responses
 logfilename = 'log.txt'  # logfile
 
