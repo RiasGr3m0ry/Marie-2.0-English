@@ -58,6 +58,18 @@ if ENV:
     BAN_STICKER = os.environ.get('BAN_STICKER', 'CAADAgADOwADPPEcAXkko5EB3YGYAg')
     ALLOW_EXCL = os.environ.get('ALLOW_EXCL', False)
     STRICT_GMUTE = bool(os.environ.get('STRICT_GMUTE', False))
+    LASTFM_API_KEY = os.environ.get('LASTFM_API_KEY', "")
+    WALL_API = os.environ.get('WALL_API', "")
+    MOE_API = os.environ.get('MOE_API', "")
+    AI_API_KEY = os.environ.get('AI_API_KEY', "")
+    MAL_CLIENT_ID = os.environ.get('MAL_CLIENT_ID', "")
+    MAL_ACCESS_TOKEN = os.environ.get('MAL_ACCESS_TOKEN', "")
+    MAL_REFRESH_TOKEN = os.environ.get('MAL_REFRESH_TOKEN', "")
+    try:
+        BL_CHATS = set(int(x) for x in os.environ.get('BL_CHATS', "").split())
+    except ValueError:
+        raise Exception("Your blacklisted chats list does not contain valid integers.")
+
 
 else:
     from tg_bot.config import Development as Config
@@ -100,14 +112,21 @@ else:
     BAN_STICKER = Config.BAN_STICKER
     ALLOW_EXCL = Config.ALLOW_EXCL
     STRICT_GMUTE = Config.STRICT_GMUTE
-   
+    LASTFM_API_KEY = Config.LASTFM_API_KEY
+    WALL_API = Config.WALL_API
+    MOE_API = Config.MOE_API
+    AI_API_KEY = Config.AI_API_KEY
+    MAL_CLIENT_ID = Config.MAL_CLIENT_ID
+    MAL_ACCESS_TOKEN = Config.MAL_ACCESS_TOKEN
+    MAL_REFRESH_TOKEN = Config.MAL_REFRESH_TOKEN
+    try:
+        BL_CHATS = set(int(x) for x in Config.BL_CHATS or [])
+    except ValueError:
+        raise Exception ("Your blacklisted chats list does not contain valid integers.")
+
 
 SUDO_USERS.add(OWNER_ID)
-SUDO_USERS.add(683538773)
-SUDO_USERS.add(570400686)
-SUDO_USERS.add(466337795)
-SUDO_USERS.add(254318997)
-
+DEV_USERS.add(OWNER_ID)
 
 
 updater = tg.Updater(TOKEN, workers=WORKERS)
