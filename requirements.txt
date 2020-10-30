@@ -36,7 +36,6 @@ wikipedia
 telethon
 spamwatch
 alphabet_detector
-pyrate-limiter
 covid
 youtube-search
 youtube-search-python
