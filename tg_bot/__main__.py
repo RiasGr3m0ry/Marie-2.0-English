@@ -1,3 +1,4 @@
+import datetime
 import importlib
 import re
 from typing import Optional, List
@@ -6,7 +7,7 @@ from telegram import Message, Chat, Update, Bot, User
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.error import Unauthorized, BadRequest, TimedOut, NetworkError, ChatMigrated, TelegramError
 from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler
-from telegram.ext.dispatcher import run_async, DispatcherHandlerStop
+from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 from telegram.utils.helpers import escape_markdown
 
 from tg_bot import dispatcher, updater, TOKEN, WEBHOOK, OWNER_ID, DONATION_LINK, CERT_PATH, PORT, URL, LOGGER, \
@@ -17,43 +18,32 @@ from tg_bot.modules import ALL_MODULES
 from tg_bot.modules.helper_funcs.chat_status import is_user_admin
 from tg_bot.modules.helper_funcs.misc import paginate_modules
 
+
+######################################################################################################################################
+
+
+
 PM_START_TEXT = """
-hoi {}, my name is {}! if you have any questions about how to use me please give me /help... 
-
-im a group manager bot maintained by  [this person](tg://user?id={}).
-
-My future updates will be put into This Channel - @MarieChechi & My Support Group @InFoTelGroup.
-
-This is my [Deploy Code](https://heroku.com/deploy?template=https://github.com/TGExplore/Marie-2.0-English),
-you can create clone same like me..
-
-For more commands click /help...
-
-**Keep in mind that any changes you DO do to the source have to be on github, as per the license.**
-
+*Waga na wa Megumin!* Ākuwizādo wo nariwai toshi, saikyou no kougeki no mahou "bakuretsu mahou" wo ayatsuru mono!
+Use /help to see my powers!
 """
 
+BOT_IMAGE = "https://telegra.ph/file/93612a540608640355f20.mp4"
+
 HELP_STRINGS = """
-
-Hello! my name *{}*.
-
-*Main* available commands:
- - /start: Start the bot...
- - /help: help....
- - /donate: To find out more about donating!
- - /settings:
-   - in PM: To find out what SETTINGS you have set....
-   - in a group:
-
+Blackness shrouded in light. Frenzied blaze clad in night. In the name of the crimson demons, let the collapse of thine origin manifest. Summon before me the root of thy power hidden within the lands of the kingdom of demise!"
+*Megumin's commands:*
+ ✪ /help: *PM's you this message.*
+ ✪ /help <module name>: *PM's you info about that module.*
+ ✪ /settings: *settings for all supported modules.*
+ ✪ /donate: *information about how to donate!*
 {}
-And the following:
-""".format(dispatcher.bot.first_name, "" if not ALLOW_EXCL else "\nAll of the following commands  / or ! can  be used...\n")
+And:
+""".format(dispatcher.bot.first_name, "" if not ALLOW_EXCL else "\nAll commands can either be used with / or !.\n")
 
-DONATE_STRING = """Heya, glad to hear you want to donate!
-It took lots of work for [my creator](t.me/SonOfLars) to get me to where I am now, and every donation helps \
-motivate him to make me even better. All the donation money will go to a better VPS to host me, and/or beer \
-(see his bio!). He's just a poor student, so every little helps!
-There are two ways of paying him; [PayPal](paypal.me/PaulSonOfLars), or [Monzo](monzo.me/paulnionvestergaardlarsen)."""
+DONATE_STRING = """{0} doesn't currently need any donations.
+However you can donate to the creator of the original source code which {0} \
+is based on:- [PayPal](paypal.me/PaulSonOfLars), or [Monzo](monzo.me/paulnionvestergaardlarsen).""".format(dispatcher.bot.first_name)
 
 IMPORTED = {}
 MIGRATEABLE = []
@@ -65,6 +55,13 @@ DATA_EXPORT = []
 
 CHAT_SETTINGS = {}
 USER_SETTINGS = {}
+
+GDPR = []
+
+
+######################################################################################################################################
+
+
 
 for module_name in ALL_MODULES:
     imported_module = importlib.import_module("tg_bot.modules." + module_name)
@@ -86,6 +83,9 @@ for module_name in ALL_MODULES:
     if hasattr(imported_module, "__stats__"):
         STATS.append(imported_module)
 
+    if hasattr(imported_module, "__gdpr__"):
+        GDPR.append(imported_module)
+
     if hasattr(imported_module, "__user_info__"):
         USER_INFO.append(imported_module)
 
@@ -101,7 +101,10 @@ for module_name in ALL_MODULES:
     if hasattr(imported_module, "__user_settings__"):
         USER_SETTINGS[imported_module.__mod_name__.lower()] = imported_module
 
-
+        
+######################################################################################################################################
+        
+        
 # do not async
 def send_help(chat_id, text, keyboard=None):
     if not keyboard:
@@ -141,13 +144,29 @@ def start(bot: Bot, update: Update, args: List[str]):
 
         else:
             first_name = update.effective_user.first_name
-            update.effective_message.reply_text(
-                PM_START_TEXT.format(escape_markdown(first_name), escape_markdown(bot.first_name), OWNER_ID),
-                parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_animation(
+                BOT_IMAGE,
+                caption=PM_START_TEXT.format(escape_markdown(first_name), escape_markdown(bot.first_name), OWNER_ID),
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton(
+                                text="✪ Explosion!!! ✪",
+                                url="t.me/{}?startgroup=botstart".format(bot.username),
+                            )
+                        ]
+                    ]
+                ),
+            )
     else:
-        update.effective_message.reply_text("waked up😏😏😏")
+        update.effective_message.reply_text("")
 
 
+######################################################################################################################################        
+        
+        
+        
 # for test purposes
 def error_callback(bot, update, error):
     try:
@@ -189,33 +208,36 @@ def help_button(bot: Bot, update: Update):
             module = mod_match.group(1)
             text = "Here is the help for the *{}* module:\n".format(HELPABLE[module].__mod_name__) \
                    + HELPABLE[module].__help__
-            query.message.reply_text(text=text,
+            query.message.edit_text(text=text,
                                      parse_mode=ParseMode.MARKDOWN,
                                      reply_markup=InlineKeyboardMarkup(
                                          [[InlineKeyboardButton(text="Back", callback_data="help_back")]]))
 
         elif prev_match:
             curr_page = int(prev_match.group(1))
-            query.message.reply_text(HELP_STRINGS,
+            query.message.edit_text(HELP_STRINGS,
                                      parse_mode=ParseMode.MARKDOWN,
                                      reply_markup=InlineKeyboardMarkup(
                                          paginate_modules(curr_page - 1, HELPABLE, "help")))
 
         elif next_match:
             next_page = int(next_match.group(1))
-            query.message.reply_text(HELP_STRINGS,
+            query.message.edit_text(HELP_STRINGS,
                                      parse_mode=ParseMode.MARKDOWN,
                                      reply_markup=InlineKeyboardMarkup(
                                          paginate_modules(next_page + 1, HELPABLE, "help")))
 
         elif back_match:
-            query.message.reply_text(text=HELP_STRINGS,
+            query.message.edit_text(text=HELP_STRINGS,
                                      parse_mode=ParseMode.MARKDOWN,
                                      reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
+            
+            
+            
+######################################################################################################################################
 
         # ensure no spinny white circle
         bot.answer_callback_query(query.id)
-        query.message.delete()
     except BadRequest as excp:
         if excp.message == "Message is not modified":
             pass
@@ -227,6 +249,8 @@ def help_button(bot: Bot, update: Update):
             LOGGER.exception("Exception in help buttons. %s", str(query.data))
 
 
+         ######################################################################################################################################           
+            
 @run_async
 def get_help(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
@@ -235,7 +259,7 @@ def get_help(bot: Bot, update: Update):
     # ONLY send help in PM
     if chat.type != chat.PRIVATE:
 
-        update.effective_message.reply_text("Contact me in PM to get the list of possible commands.",
+        update.effective_message.reply_text("Cast my magical words in PM to get the list of possible commands.",
                                             reply_markup=InlineKeyboardMarkup(
                                                 [[InlineKeyboardButton(text="Help",
                                                                        url="t.me/{}?start=help".format(
@@ -292,7 +316,8 @@ def settings_button(bot: Bot, update: Update):
             module = mod_match.group(2)
             chat = bot.get_chat(chat_id)
             text = "*{}* has the following settings for the *{}* module:\n\n".format(escape_markdown(chat.title),
-                                                                                     CHAT_SETTINGS[module].__mod_name__) + \
+                                                                                     CHAT_SETTINGS[
+                                                                                         module].__mod_name__) + \
                    CHAT_SETTINGS[module].__chat_settings__(chat_id, user.id)
             query.message.reply_text(text=text,
                                      parse_mode=ParseMode.MARKDOWN,
@@ -356,7 +381,7 @@ def get_settings(bot: Bot, update: Update):
             text = "Click here to get this chat's settings, as well as yours."
             msg.reply_text(text,
                            reply_markup=InlineKeyboardMarkup(
-                               [[InlineKeyboardButton(text="Settings",
+                               [[InlineKeyboardButton(text="✪ Settings ✪",
                                                       url="t.me/{}?start=stngs_{}".format(
                                                           bot.username, chat.id))]]))
         else:
@@ -431,9 +456,12 @@ def main():
 
     # dispatcher.add_error_handler(error_callback)
 
+    # add antiflood processor
+    Dispatcher.process_update = process_update
+
     if WEBHOOK:
         LOGGER.info("Using webhooks.")
-        updater.start_webhook(listen="0.0.0.0",
+        updater.start_webhook(listen="127.0.0.1",
                               port=PORT,
                               url_path=TOKEN)
 
@@ -450,6 +478,62 @@ def main():
     updater.idle()
 
 
+CHATS_CNT = {}
+CHATS_TIME = {}
+######################################################################################################################################
+
+def process_update(self, update):
+    # An error happened while polling
+    if isinstance(update, TelegramError):
+        try:
+            self.dispatch_error(None, update)
+        except Exception:
+            self.logger.exception('An uncaught error was raised while handling the error')
+        return
+
+    if not update.effective_chat:
+        return
+
+    now = datetime.datetime.utcnow()
+    cnt = CHATS_CNT.get(update.effective_chat.id, 0)
+
+    t = CHATS_TIME.get(update.effective_chat.id, datetime.datetime(1970, 1, 1))
+    if t and now > t + datetime.timedelta(0, 1):
+        CHATS_TIME[update.effective_chat.id] = now
+        cnt = 0
+    else:
+        cnt += 1
+
+    if cnt > 10:
+        return
+
+    CHATS_CNT[update.effective_chat.id] = cnt
+    for group in self.groups:
+        try:
+            for handler in (x for x in self.handlers[group] if x.check_update(update)):
+                handler.handle_update(update, self)
+                break
+
+        # Stop processing with any other handler.
+        except DispatcherHandlerStop:
+            self.logger.debug('Stopping further handlers due to DispatcherHandlerStop')
+            break
+
+        # Dispatch any error.
+        except TelegramError as te:
+            self.logger.warning('A TelegramError was raised while processing the Update')
+
+            try:
+                self.dispatch_error(update, te)
+            except DispatcherHandlerStop:
+                self.logger.debug('Error handler stopped further handlers')
+                break
+            except Exception:
+                self.logger.exception('An uncaught error was raised while handling the error')
+        except Exception:
+            self.logger.exception('An uncaught error was raised while processing the update')
+######################################################################################################################################
+
 if __name__ == '__main__':
-    LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
+    LOGGER.info("Explooooooosion!: " + str(ALL_MODULES))
     main()
