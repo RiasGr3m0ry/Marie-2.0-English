@@ -138,6 +138,14 @@ def get_user_num_chats(user_id):
         SESSION.close()
 
 
+def get_user_com_chats(user_id):
+    try:
+        chat_members = SESSION.query(ChatMembers).filter(ChatMembers.user == int(user_id)).all()
+        return [i.chat for i in chat_members]
+    finally:
+        SESSION.close()
+
+
 def num_chats():
     try:
         return SESSION.query(Chats).count()
@@ -170,3 +178,27 @@ def migrate_chat(old_chat_id, new_chat_id):
 
 
 ensure_bot_in_db()
+
+
+def del_user(user_id):
+    with INSERTION_LOCK:
+        curr = SESSION.query(Users).get(user_id)
+        if curr:
+            SESSION.delete(curr)
+            SESSION.commit()
+            return True
+
+        ChatMembers.query.filter(ChatMembers.user == user_id).delete()
+        SESSION.commit()
+        SESSION.close()
+    return False
+
+
+def rem_chat(chat_id):
+    with INSERTION_LOCK:
+        chat = SESSION.query(Chats).get(str(chat_id))
+        if chat:
+            SESSION.delete(chat)
+            SESSION.commit()
+        else:
+            SESSION.close()
